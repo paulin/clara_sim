@@ -24,3 +24,5 @@ Reviewed the user-supplied Gemini meeting notes “30 min with Matt (Melinda Yor
 ## Verification
 
 Tests cover baseline starts, the 30-minute cascade, exclusive machine occupancy, room turnover constraints, equal-time release behavior, and deterministic replay/no future events for every minute from 08:00 to 11:30 across all 13 allowed conflict settings. The default hold results in 30-minute start delays for B–F (150 case-minutes in total); A starts on time and ends 30 minutes late. Additional tests cover all staff routines, cleaning and transfer stages, physical resource gates, corridor route interpolation at fractional times, and rewind consistency. Browser checks cover moving entity inspection, pause, shortcuts and movement filtering. No predictions, interventions, notifications, clinical decisions, real patients or real hospital data are used.
+
+OR heart monitors illuminate and sweep only while a case is in progress. The animation follows simulation time, so pause freezes it and rewind restores its phase. Inactive rooms show a dim idle screen. These are activity indicators, not simulated or real patient vital signs.
