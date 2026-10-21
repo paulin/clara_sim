@@ -1,6 +1,6 @@
 # CLARA Prototype v0.1
 
-A synthetic, deterministic operating-room dependency sandbox. Open the hosted site, or serve `dist` using `python3 -m http.server 8765 --directory dist` and visit http://localhost:8765. No installation or build required. The live floor now includes a corridor, doors, furniture, nurse workroom, staff office and staff lounge, with animated staff and ultrasound routes. Run checks with `node tests/sim.mjs`.
+A synthetic, deterministic operating-room dependency sandbox. Open the hosted site, or serve `dist` using `python3 -m http.server 8765 --directory dist` and visit http://localhost:8765. No installation or build required. The live floor now includes a corridor, doors, nurse workroom, staff office and staff lounge, with animated staff and ultrasound routes. Run checks with `node tests/sim.mjs`.
 
 ## Try it
 
