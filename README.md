@@ -1,30 +1,39 @@
-# CLARA Prototype v0.1
+# CLARA Neurosurgery Resource Game v0.2
 
-A synthetic, deterministic operating-room dependency sandbox. Open the hosted site, or serve `dist` using `python3 -m http.server 8765 --directory dist` and visit http://localhost:8765. No installation or build required. The live floor now includes a corridor, doors, nurse workroom, staff office and staff lounge, with animated staff and ultrasound routes. Run checks with `node tests/sim.mjs`.
+Live private site: https://clara-prototype-lab.paulin42.chatgpt.site
 
-## Try it
+A deterministic operations game using fictional staffing, case requirements, durations and USD costs. No AI predictions, clinical decisions, mortality estimates, real patient data or validated staffing recommendations.
 
-1. Choose “Jump to first conflict” to see case B waiting at 08:20.
-2. Select P-B or OR 2 to inspect the blocked resource.
-3. Play at 15×, or use Next event. At 09:00, later cases begin waiting on rooms and dedicated staff.
-4. Rewind or drag the clock to revisit any state. Set extra equipment hold to 0 to compare the baseline at the same clock time. Reset restores 08:00 and the default 30-minute hold.
+## Run locally
 
-Use “Watch between cases” to see the first team leave OR 1 when case A finishes (09:15 at the default hold). Surgeons head to the office, anesthesia staff head to recovery, and the nurse remains for room duties before leaving. “Watch ultrasound transfer” starts just before the first equipment trip, adjusting to the conflict setting. Select a moving entity for its route and arrival time; use the Movement only event filter to follow trips.
+Serve `dist`: `python3 -m http.server 8765 --directory dist`, then open http://localhost:8765. No installation or build needed.
 
-Speed defaults to 1× (one simulated minute per real second). Motion is interpolated along door-and-corridor paths using simulation time. Pausing freezes positions; scrubbing and rewind reconstruct the same state. Slider edits pause and replay the scenario from the beginning to the selected time. No randomness or AI is used.
+Checks: `node tests/game.mjs` and `node tests/sim.mjs`. The original v0.1 engine remains in `dist/sim.mjs` for regression/reference; the current game uses `dist/game-sim.mjs`.
 
-## Grounding
+## Play
 
-Reviewed the user-supplied Gemini meeting notes “30 min with Matt (Melinda Yormick)” dated October 19, 2026, plus all five supplied CLARA slide images. The conceptual basis is the world model and operational event flow described at 00:01:20–00:03:25 and 00:40:48–00:42:09, the deterministic/learning distinction at 00:52:53–00:55:38, and the slide illustrating an ultrasound conflict. The in-app Concept & assumptions panel provides these references and all modeling assumptions. Gemini notes may contain transcription errors. The app does not validate deck claims.
+Adjust on-duty staff and owned equipment with +/−. Expand the surgery editor to change resource quantities, duration, or the type assigned to each case. Setup changes pause and reset the clock; history is retained. Use Play/Next event/scrub to follow resources, or Run full day to score immediately. Last 10 scored runs and the setup persist in this browser. Load a previous run's setup to try it again. Best runs are compared only under identical requirements, case mix, conflict and cost rules.
 
-## Synthetic rules
+Goal: finish all six cases by 16:00 with zero start delay, then minimize cost among setups tried. This does not prove global optimality or establish clinically safe minimum staffing. Removing requirements changes the game rather than demonstrating a better solution to the same challenge.
 
-08:00 is minute zero. A starts at 0, duration 45, ultrasound 15. B starts at 20, duration 40, ultrasound 20. C starts at 45, duration 35, ultrasound 20. The injected hold (0–60 minutes, default 30) extends both A's ultrasound use and A's total case duration. Ultrasound turnaround takes 3 minutes of cleaning in the prior OR and 2 minutes of corridor travel to the next booked OR (or the equipment hub after C); equipment remains unavailable until arrival. A/B/C are served in planned order. D/E/F use their predecessor's OR and dedicated team at planned times 60/75/95 and each lasts 35 minutes. Turnover takes 15 minutes. Recovery lasts 30 minutes and has unconstrained capacity, as does pre-op. Patient transfer time is zero. Each OR has three dedicated staff (S: surgeon, N: nurse, A: anesthesia). Teams remain assigned to the same OR, but move between cases: surgeons visit the staff office; nurses stay in the OR for 10 minutes of room duties, then visit the workroom; anesthesia staff walk to recovery, stay 3 minutes for handoff, then visit the lounge. Staff return by max(next planned start, prior case end + 15 min). Each trip takes 2 minutes. Initial team 1 and ultrasound are already in OR 1 at 08:00; other staff depart their home spaces 2 minutes before their first scheduled start. Every start requires the complete assigned team and any required ultrasound to be present in the OR. These routines and all travel times are illustrative, not a validated hospital protocol. General turnover context: https://www.aorn.org/article/5-steps-to-bring-teams-together-for-more-efficient-effective-or-turnovers . These are generic software resource constraints, not clinical readiness rules.
+## Fictional day and constraints
 
-## Verification
+Case A/OR1 08:10, B/OR2 08:30, C/OR3 08:50, D/OR1 10:10, E/OR2 10:30, F/OR3 10:50. Default alternating cranial tumor cases (90 min) and spinal decompression (75 min). Each defaults to one neurosurgeon, circulating nurse, anesthesia professional and scrub technologist. Cranial requires US ultrasound, MC microscope and NV navigation; spine requires MC only. These invented requirements are incomplete clinical lists.
 
-Tests cover baseline starts, the 30-minute cascade, exclusive machine occupancy, room turnover constraints, equal-time release behavior, and deterministic replay/no future events for every minute from 08:00 to 11:30 across all 13 allowed conflict settings. The default hold results in 30-minute start delays for B–F (150 case-minutes in total); A starts on time and ends 30 minutes late. Additional tests cover all staff routines, cleaning and transfer stages, physical resource gates, corridor route interpolation at fractional times, and rewind consistency. Browser checks cover moving entity inspection, pause, shortcuts and movement filtering. No predictions, interventions, notifications, clinical decisions, real patients or real hospital data are used.
+Resources are shared pools. Dispatch reserves a complete set atomically, no earlier than plan minus 2 minutes, and only after earlier cases in that room complete 15-minute turnover. Blocked cases can be skipped to dispatch another due case. Every resource travels 2 minutes and must arrive before start. Staff are unavailable for 10 minutes after a case; S/T return to work spaces, N remains for 8 minutes then walks 2, A walks to recovery, remains 3 minutes and walks to the lounge. Equipment stays through case end except ultrasound (first 15 minutes). Equipment needs 3 minutes cleaning and 2 back to the hub; a subsequent dispatch adds another 2. Extra case-A hold extends A and its ultrasound use. Pre-op/recovery capacity is unconstrained, patient transfers instantaneous, and recovery takes 30 minutes. All motion follows replayable simulation time, including the monitors' activity animation.
 
-OR heart monitors illuminate and sweep only while a case is in progress. The animation follows simulation time, so pause freezes it and rewind restores its phase. Inactive rooms show a dim idle screen. These are activity indicators, not simulated or real patient vital signs.
+## Fictional costs
 
-Patient beds mark the OR patient position and three illustrative bays in pre-op and recovery. They are visual landmarks, not modeled capacity limits.
+Hourly pay per on-duty person: S $180, N $55, A $130, T $45. Staff are paid while idle. Eight-hour day, no payroll taxes/benefits/overtime modeled. Purchase / upkeep per operating day: US $60,000 / $20; MC $450,000 / $80; NV $250,000 / $50. These are invented game prices, not market estimates.
+
+Daily mode allocates purchase over 1,250 operating days and accrues that daily share and upkeep proportionally to elapsed shift time. Full-purchase mode charges the whole inventory at time zero; upkeep still accrues. Default start delay penalty $25 per case-minute accumulates even for cases that never start. Default missed-case penalty $10,000 applies at 16:00 to every unfinished case, including those still in progress. It is a game consequence and does not represent death, patient harm, or the value of a life. No clinical outcomes are modeled.
+
+Default 2 staff of each type and 1 of each machine: starts 08:10, 09:47, 11:09, 12:46, 14:08, 15:45; five completed by cutoff, one missed, 885 case-minutes delay, $39,443 total in default daily mode. A reference setup with 3 of each staff role, 3 microscopes, 2 ultrasound units and 2 navigation carts completes all cases on time for $11,796. This is a test fixture, not a clinical recommendation.
+
+Blocked-start events are recorded once per case with an observed resource shortage at its due start. A late start is another event; movement counts should not be optimized as a safety proxy. The cost ledger and comparison table expose both late-case counts and delay minutes rather than implying all events have equivalent consequences.
+
+## Concept and sources
+
+Reviewed user-supplied Gemini notes “30 min with Matt (Melinda Yormick),” October 19, 2026, and all five CLARA slide images. Basis: hospital world model and operational event flow at 00:01:20–00:03:25 and 00:40:48–00:42:09; deterministic/learning distinction at 00:52:53–00:55:38; slide illustrating ultrasound conflict. Notes may contain transcription errors. The game does not validate deck claims.
+
+Equipment categories only are grounded by ZEISS neurosurgical microscopy (https://www.zeiss.com/meditec/en/products/surgical-microscopes/neurosurgical-microscopes.html) and Medtronic neurosurgical imaging/navigation (https://www.medtronic.com/se-sv/healthcare-professionals/products/neurological/surgical-navigation-imaging/neurosurgery-imaging-surgical-navigation.html). These sources do not validate game requirements, durations, costs or staffing levels.
